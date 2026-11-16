@@ -1,0 +1,17 @@
+[project]
+name = "starter"
+version = "0.1.0"
+description = "Starter GUI Tkinter (customtkinter) - base utama aplikasi desktop"
+requires-python = ">=3.11"
+dependencies = [
+    "customtkinter>=5.2.2",
+    "pillow>=12.1.0",
+    "pillow-avif-plugin>=1.5.2",
+    "pyinstaller>=6.18.0",
+    "pystray>=0.19.5",
+    "pywebview>=6.2.1",
+    "tkinterdnd2>=0.4.3",
+]
+
+[tool.uv]
+package = false
