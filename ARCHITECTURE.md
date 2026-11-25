@@ -1,52 +1,49 @@
 # ARCHITECTURE
 
-Dokumen ini ditulis agar AI agent / developer lain bisa cepat paham. Baca ini dulu sebelum mengubah kode.
+Baca ini dulu sebelum mengubah kode. Dokumen ini ditulis agar developer maupun AI agent cepat paham.
 
 ## Stack
 Python >= 3.11, uv, customtkinter (UI), pystray + Pillow (tray), PyInstaller (build).
-Dependency lain terpasang untuk dipakai aplikasi turunan bila perlu: pillow-avif-plugin (AVIF, auto-register di `main.py`), tkinterdnd2 (drag & drop), pywebview.
+Dependency lain sudah terpasang untuk aplikasi turunan: pillow-avif-plugin (auto-register di `main.py`), tkinterdnd2, pywebview.
 
-## Struktur folder
+## Peta folder
 ```
-main.py                  entry point (tambah src/ ke sys.path lalu panggil app.main.run)
-build.py                 build exe + zip (PyInstaller)
-pyproject.toml           dependency & versi
-assets/                  icon.ico, icon.png (ikut dibundle ke exe)
-scripts/                 make_icon.py, bump_version.py, rename_app.py
+main.py            entry point (menambah src/ ke sys.path, memanggil app.main.run)
+build.py           build exe + zip
+dev.py             bump | rename | icon
+assets/            icon.ico, icon.png (ikut dibundle)
 src/app/
-  meta.py                APP_NAME, APP_VERSION, APP_ID  <- satu-satunya sumber nama & versi
-  paths.py               SEMUA path (BASE_DIR, DATA_DIR, ASSETS_DIR, ...)
-  main.py                alur start
-  core/                  logika tanpa UI: logger, settings, single_instance, worker, errors, tray
-  ui/
-    app_window.py        window utama (sidebar, toast, tray, simpan posisi window)
-    pages/               satu file = satu halaman; registry di pages/__init__.py (PAGES)
-    widgets/             komponen UI reusable (toast.py)
+  config.py        nama, versi, SEMUA path, feature_data()
+  main.py          alur start
+  shell/           kerangka aplikasi (jarang diubah): window.py, tray.py, single_instance.py
+  shared/          dipakai lintas fitur: settings.py, log.py, worker.py, toast.py, page.py (BasePage)
+  features/        SEMUA fitur: 1 folder = 1 fitur
+    __init__.py    registry FEATURES (urutan = urutan sidebar)
+    home/  settings/  about/     masing-masing berisi page.py
 ```
 
-## Aturan penting
-1. **Nama & versi hanya di `meta.py`** (diubah lewat script). `pyproject.toml` disinkronkan oleh `bump_version.py`.
-2. **Path hanya dari `paths.py`.** Saat frozen: `BASE_DIR` = folder exe, `RESOURCE_DIR` = `<APP_ID>_System`. Saat dev: root proyek.
-3. **Semua data yang disimpan masuk `<APP_ID>_Data/`** (`settings.json`, `logs/`, dan data aplikasi turunan). Jangan tulis ke tempat lain.
-4. **UI hanya disentuh dari thread UI.** Dari thread lain gunakan `window.run_on_ui(fn)`. Tugas berat: `core.worker.run_in_background(fn, window.run_on_ui, on_done, on_error)`.
-5. **Halaman baru**: salin `pages/home.py`, turunkan `BasePage`, isi `build()`, daftarkan di `PAGES`. Halaman punya akses `self.win` (settings, `toast()`, `run_on_ui()`).
-6. **Pengaturan baru**: tambah key di `DEFAULTS` pada `core/settings.py`, baca/tulis lewat `settings.get/set`.
-7. Error tak tertangani otomatis masuk log (`Data/logs/app.log`) dan tampil di dialog.
+## Aturan
+1. **Satu fitur = satu folder** `features/<nama>/`: `page.py` (UI), opsional `service.py` (logika) dan `models.py`.
+2. **Fitur tidak boleh import fitur lain.** Yang dipakai bersama dipindah ke `shared/`.
+3. `shell/` dan `shared/` tidak berisi logika fitur.
+4. **Fitur baru**: buat `features/<nama>/page.py` (turunan `BasePage`, isi `build()`), tambah 1 baris di `FEATURES`. Registry sengaja manual (bukan auto-scan) agar PyInstaller pasti membundle modulnya.
+5. **Nama & versi hanya di `config.py`**, diubah lewat `dev.py`. **Path hanya dari `config.py`.**
+6. **Semua data masuk `<APP_ID>_Data/`.** Data milik fitur: `feature_data("<nama>")` -> `<APP_ID>_Data/<nama>/`. Settings global: `shared/settings.py` (tambah key di `DEFAULTS`).
+7. **UI hanya disentuh dari thread UI.** Dari thread lain: `window.run_on_ui(fn)`. Tugas berat: `run_in_background(fn, window.run_on_ui, on_done, on_error)`.
+8. Halaman punya `self.win` (AppWindow): `settings`, `toast()`, `run_on_ui()`.
 
 ## Alur start (`app/main.py`)
-`ensure_dirs` -> `setup_logging` -> `SingleInstance.acquire` (jika gagal, instance lama disuruh tampil lalu keluar) -> `AppWindow(Settings)` -> pasang handler error global -> `mainloop`.
+`ensure_dirs` -> `setup_logging` -> `SingleInstance.acquire` (gagal = instance lama disuruh tampil, lalu keluar) -> `AppWindow(Settings)` -> handler error global -> `mainloop`.
 
 ## Tray & lifecycle
-Tray berjalan di thread sendiri (`run_detached`); callback-nya dilempar ke UI lewat `run_on_ui`. Tombol X: jika `close_to_tray` aktif dan tray hidup, window disembunyikan; selain itu keluar. Menu tray "Keluar" memanggil `quit_app`. Posisi window & status maximized disimpan ke settings saat ditutup.
+Tray jalan di thread sendiri; callback-nya dilempar ke UI lewat `run_on_ui`. Tombol X: bila `close_to_tray` aktif dan tray hidup, window disembunyikan; selain itu keluar. Posisi window & status maximized disimpan ke settings saat ditutup. Error tak tertangani masuk `Data/logs/app.log` dan tampil di dialog.
 
 ## Build (`build.py`)
-PyInstaller onedir, windowed, `--contents-directory <APP_ID>_System` (menggantikan `_internal`), icon dari `assets/icon.ico`, `assets/` dibundle via `--add-data`.
-Setelah build, folder `dist/<APP_ID>` di-rename ke `dist/<APP_NAME>`, lalu di-zip menjadi `dist/<APP_NAME> <VERSI>.zip` dengan root folder `<APP_NAME>` (tanpa versi).
-Bila aplikasi turunan memakai library lain yang butuh hidden import, tambahkan di `build.py`.
+PyInstaller onedir, windowed, `--contents-directory <APP_ID>_System` (pengganti `_internal`), icon `assets/icon.ico`, `assets/` dibundle lewat `--add-data`. Setelah build, `dist/<APP_ID>` di-rename ke `dist/<APP_NAME>` lalu di-zip menjadi `dist/<APP_NAME> <VERSI>.zip` (root folder `<APP_NAME>`, tanpa versi). Library baru yang butuh hidden import: tambahkan di `build.py`.
 
 ## Alur kerja perubahan
-Setiap perubahan: (1) kerjakan, (2) catat di `CHANGELOG.md`, (3) `scripts/bump_version.py`, (4) perbarui dokumen ini jika arsitektur berubah.
+Kerjakan -> catat di `CHANGELOG.md` -> `python dev.py bump ...` -> perbarui dokumen ini bila arsitektur berubah.
 
 ## Catatan
-- Window memakai frame native (frameless Tkinter rawan bug di Windows), bukan custom titlebar.
-- Tray butuh `assets/icon.png`; kalau gagal dibuat, aplikasi tetap jalan dan tombol X langsung keluar.
+- Window pakai frame native (frameless Tkinter rawan bug di Windows).
+- Tanpa `assets/icon.png`, tray gagal dibuat; aplikasi tetap jalan dan tombol X langsung keluar.

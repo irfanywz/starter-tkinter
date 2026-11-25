@@ -2,7 +2,7 @@
 import threading
 from typing import Any, Callable
 
-from .logger import get_logger
+from .log import get_logger
 
 log = get_logger(__name__)
 

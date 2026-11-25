@@ -5,12 +5,11 @@ from typing import Callable
 
 import customtkinter as ctk
 
-from ..core.logger import get_logger
-from ..core.tray import Tray
-from ..meta import APP_NAME
-from ..paths import ICON_ICO
-from .pages import PAGES
-from .widgets.toast import Toast
+from ..shared.log import get_logger
+from ..config import APP_NAME, ICON_ICO
+from ..features import FEATURES
+from ..shared.toast import Toast
+from .tray import Tray
 
 log = get_logger(__name__)
 
@@ -54,7 +53,7 @@ class AppWindow(ctk.CTk):
 
         self.pages = {}
         self.nav_buttons = {}
-        for key, label, cls in PAGES:
+        for key, label, cls in FEATURES:
             self.pages[key] = cls(content, self)
             btn = ctk.CTkButton(sidebar, text=label, anchor="w", fg_color="transparent",
                                 text_color=("gray10", "gray90"), hover_color=("gray75", "gray30"),
@@ -63,7 +62,7 @@ class AppWindow(ctk.CTk):
             self.nav_buttons[key] = btn
 
         self.toast_widget = Toast(self)
-        self.show_page(PAGES[0][0])
+        self.show_page(FEATURES[0][0])
 
     def show_page(self, key: str) -> None:
         for k, page in self.pages.items():

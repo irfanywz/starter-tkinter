@@ -1,8 +1,7 @@
 import customtkinter as ctk
 
-from ...meta import APP_NAME, APP_VERSION
-from ...paths import DATA_DIR
-from .base import BasePage
+from ...config import APP_NAME, APP_VERSION, DATA_DIR
+from ...shared.page import BasePage
 
 
 class AboutPage(BasePage):

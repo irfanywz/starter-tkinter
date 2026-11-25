@@ -4,8 +4,8 @@ import sys
 
 import customtkinter as ctk
 
-from ...paths import DATA_DIR
-from .base import BasePage
+from ...config import DATA_DIR
+from ...shared.page import BasePage
 
 
 class SettingsPage(BasePage):
@@ -17,8 +17,9 @@ class SettingsPage(BasePage):
         row = ctk.CTkFrame(self.body, fg_color="transparent")
         row.pack(anchor="w", pady=6)
         ctk.CTkLabel(row, text="Tema").pack(side="left", padx=(0, 12))
-        ctk.CTkOptionMenu(row, values=["System", "Light", "Dark"], command=self._set_theme).pack(side="left")
-        row.winfo_children()[1].set(s.get("theme"))
+        theme_menu = ctk.CTkOptionMenu(row, values=["System", "Light", "Dark"], command=self._set_theme)
+        theme_menu.set(s.get("theme"))
+        theme_menu.pack(side="left")
 
         self.tray_var = ctk.BooleanVar(value=s.get("close_to_tray"))
         ctk.CTkCheckBox(self.body, text="Tombol tutup (X) menyembunyikan ke tray", variable=self.tray_var,

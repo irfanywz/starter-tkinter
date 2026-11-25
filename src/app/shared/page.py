@@ -2,7 +2,7 @@ import customtkinter as ctk
 
 
 class BasePage(ctk.CTkFrame):
-    """Semua halaman turunan kelas ini. Daftarkan di ui/pages/__init__.py (PAGES)."""
+    """Semua halaman fitur turunan kelas ini."""
 
     title = "Halaman"
 

@@ -4,7 +4,7 @@ Base utama untuk aplikasi GUI Tkinter supaya struktur folder **selalu seragam** 
 Untuk penjelasan arsitektur (terutama bagi AI agent), baca [ARCHITECTURE.md](ARCHITECTURE.md). Riwayat perubahan ada di [CHANGELOG.md](CHANGELOG.md).
 
 ## Isi
-- customtkinter, sidebar + halaman (tinggal tambah file di `ui/pages/`)
+- customtkinter, sidebar + halaman, struktur berbasis fitur (`features/<nama>/`)
 - Tray icon (tutup window = sembunyi ke tray), single instance, toast di tengah bawah
 - Simpan posisi window & status maximized, tema System/Light/Dark
 - Helper background worker, penangkap error global, log rotasi
@@ -18,9 +18,9 @@ uv run python main.py
 
 ## Membuat aplikasi baru dari starter
 1. Salin folder ini, ganti nama foldernya.
-2. `uv run python scripts/rename_app.py "Nama Aplikasi"`
+2. `uv run python dev.py rename "Nama Aplikasi"`
 3. Ganti `assets/icon.ico` dan `assets/icon.png` dengan icon asli (nama file tetap).
-4. Tambah halaman di `src/app/ui/pages/`, daftarkan di `pages/__init__.py`.
+4. Tambah fitur: buat folder `src/app/features/<nama>/` berisi `page.py` (salin dari `features/home`), lalu daftarkan 1 baris di `features/__init__.py`.
 
 ## Build
 ```
@@ -36,4 +36,4 @@ Nama Aplikasi 0.1.0.zip    <- root folder di dalam zip: "Nama Aplikasi" (tanpa v
 ```
 
 ## Setiap perubahan
-Catat di `CHANGELOG.md` dan naikkan versi: `uv run python scripts/bump_version.py patch|minor|major`.
+Catat di `CHANGELOG.md` dan naikkan versi: `uv run python dev.py bump patch|minor|major`.

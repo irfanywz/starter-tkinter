@@ -1,10 +1,8 @@
 """Alur start: folder -> log -> settings -> single instance -> window -> mainloop."""
-from .core.errors import install_global_handlers
-from .core.logger import get_logger, setup_logging
-from .core.settings import Settings
-from .core.single_instance import SingleInstance
-from .meta import APP_ID, APP_NAME, APP_VERSION
-from .paths import SETTINGS_FILE, ensure_dirs
+from .config import APP_ID, APP_NAME, APP_VERSION, SETTINGS_FILE, ensure_dirs
+from .shared.log import get_logger, install_global_handlers, setup_logging
+from .shared.settings import Settings
+from .shell.single_instance import SingleInstance
 
 try:  # daftarkan dukungan AVIF di Pillow bila terpasang
     import pillow_avif  # noqa: F401
@@ -28,7 +26,7 @@ def run() -> None:
     if not guard.acquire():
         return  # sudah ada instance lain, dia sudah disuruh tampil
 
-    from .ui.app_window import AppWindow  # import UI setelah lolos single-instance
+    from .shell.window import AppWindow  # import UI setelah lolos single-instance
 
     window = AppWindow(Settings(SETTINGS_FILE))
     install_global_handlers(lambda t, m: window.run_on_ui(lambda: window.show_error(t, m)))

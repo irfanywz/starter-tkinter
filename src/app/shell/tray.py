@@ -4,9 +4,8 @@ from typing import Callable
 import pystray
 from PIL import Image
 
-from ..meta import APP_ID, APP_NAME
-from ..paths import ICON_PNG
-from .logger import get_logger
+from ..config import APP_ID, APP_NAME, ICON_PNG
+from ..shared.log import get_logger
 
 log = get_logger(__name__)
 

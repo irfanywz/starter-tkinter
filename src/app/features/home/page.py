@@ -2,8 +2,8 @@ import time
 
 import customtkinter as ctk
 
-from ...core.worker import run_in_background
-from .base import BasePage
+from ...shared.worker import run_in_background
+from ...shared.page import BasePage
 
 
 class HomePage(BasePage):

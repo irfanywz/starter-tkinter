@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from app.meta import APP_ID, APP_NAME, APP_VERSION  # noqa: E402
+from app.config import APP_ID, APP_NAME, APP_VERSION  # noqa: E402
 
 DIST = ROOT / "dist"
 WORK = ROOT / "build"
@@ -28,7 +28,7 @@ def main() -> None:
 
     icon = ROOT / "assets" / "icon.ico"
     if not icon.exists():
-        sys.exit("assets/icon.ico tidak ada. Jalankan: uv run python scripts/make_icon.py")
+        sys.exit("assets/icon.ico tidak ada. Jalankan: uv run python dev.py icon")
 
     pyi.run([
         str(ROOT / "main.py"),
